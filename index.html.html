@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Mail Merge Dashboard</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #16a34a;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        header {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            background: #e0e7ff;
+            color: var(--primary);
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #334155;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        textarea {
+            height: 180px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        /* Drag & Drop Zone */
+        #drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8fafc;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+
+        #drop-zone.hover {
+            border-color: var(--primary);
+            background: #f5f3ff;
+            color: var(--primary);
+        }
+
+        /* Live Preview Window */
+        .preview-box {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            min-height: 120px;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+        }
+
+        /* Action Buttons */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: var(--primary-hover); }
+        .btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            color: #94a3b8;
+        }
+
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #15803d; }
+
+        .status-banner {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .syntax-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: -12px;
+            margin-bottom: 12px;
+        }
+        code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #0f172a;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Bulk Mail Merge Console</h1>
+        <p>Dynamic automated email campaigns via Google API</p>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">1. Compose Template <span class="badge">Variables Enabled</span></div>
+            
+            <label for="email-subject">Campaign Subject Line</label>
+            <input type="text" id="email-subject" placeholder="e.g., Schedule Update for {Name}">
+            
+            <label for="email-template">Email Body Content</label>
+            <textarea id="email-template" placeholder="Hello {Name},&#10;&#10;Your upcoming assignment is located at {Location}. Please report directly to {Address}.&#10;&#10;Best regards,&#10;Operations Team"></textarea>
+            <div class="syntax-hint">Available tokens matching your file columns: <code>{Name}</code>, <code>{Location}</code>, <code>{Address}</code></div>
+        </div>
+
+        <div class="grid-right" style="display: flex; flex-direction: column; gap: 24px;">
+            <div class="card">
+                <div class="card-title">2. Data Source</div>
+                <div id="drop-zone">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 12px; color: #94a3b8;" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <div>Drag & drop your employee <strong>.csv</strong> file here</div>
+                    <span style="font-size: 0.85rem; color: #94a3b8;">or click to browse local files</span>
+                </div>
+                <input type="file" id="file-input" accept=".csv" style="display: none;">
+                <div id="file-info" style="margin-top: 12px; font-size: 0.9rem; font-weight: 500;"></div>
+            </div>
+
+            <div class="card" style="flex-grow: 1;">
+                <div class="card-title">3. Sample Preview <span class="badge" style="background:#f1f5f9; color:#475569;">Row 1 Generation</span></div>
+                <label id="preview-subject-label" style="font-weight: 600; margin-bottom: 8px;">Subject: --</label>
+                <div class="preview-box" id="preview-body">Upload a CSV file and complete template fields to view live preview...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <button id="send-btn" class="btn btn-success" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            Execute Direct Broadcast via Gmail API
+        </button>
+        <div id="process-status" class="status-banner"></div>
+    </div>
+</div>
+
+<script>
+    // Paste your Google Apps Script Deployment Web App URL here
+    const WEB_APP_URL = 'https://script.google.com/a/macros/ayefin.com/s/AKfycbwAF6JDkfbmW7_3hAiE2jrf0SF_8F-O60KnAN0yLpitC8IY7nRuwguJVEbqvO5p8FdG/exec'; 
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileInfo = document.getElementById('file-info');
+    const sendBtn = document.getElementById('send-btn');
+    const statusDiv = document.getElementById('process-status');
+    const subjectInput = document.getElementById('email-subject');
+    const templateInput = document.getElementById('email-template');
+    const previewSub = document.getElementById('preview-subject-label');
+    const previewBody = document.getElementById('preview-body');
+    
+    let parsedData = [];
+
+    // Drag and drop event listeners
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('hover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('hover');
+        handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    // Real-time live template preview generation
+    [subjectInput, templateInput].forEach(element => {
+        element.addEventListener('input', updateLivePreview);
+    });
+
+    function handleFile(file) {
+        if (!file || !file.name.endsWith('.csv')) {
+            alert('Invalid file format. Please drop a verified CSV spreadsheet.');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            parsedData = csvToArray(text);
+            if(parsedData.length > 0) {
+                fileInfo.innerHTML = `<span style="color:var(--success);">✔ Linked: ${file.name} (${parsedData.length} entries detected)</span>`;
+                sendBtn.disabled = false;
+                updateLivePreview();
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Comprehensive CSV Engine
+    function csvToArray(str, delimiter = ",") {
+        const lines = str.split(/\r?\n/);
+        const headers = lines[0].split(delimiter).map(h => h.trim().replace(/["']/g, ""));
+        
+        if (!headers.includes("Email")) {
+            alert("Execution Denied: The spreadsheet structure must include an 'Email' header token column.");
+            return [];
+        }
+
+        const result = [];
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const values = lines[i].split(delimiter).map(v => v.trim().replace(/["']/g, ""));
+            if (values.length === headers.length) {
+                const obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = values[index];
+                });
+                result.push(obj);
+            }
+        }
+        return result;
+    }
+
+    function updateLivePreview() {
+        let sampleData = parsedData[0] || { Name: "[Name]", Location: "[Location]", Address: "[Address]", Email: "employee@company.com" };
+        
+        let sub = subjectInput.value || "No Subject Defined";
+        let body = templateInput.value || "No Content Composed";
+
+        Object.keys(sampleData).forEach(key => {
+            const regex = new RegExp(`{${key}}`, 'g');
+            sub = sub.replace(regex, sampleData[key]);
+            body = body.replace(regex, sampleData[key]);
+        });
+
+        previewSub.textContent = `Subject: ${sub}`;
+        previewBody.textContent = body;
+    }
+
+    // One-Click Bulk API Execution Trigger
+    sendBtn.addEventListener('click', async () => {
+        const subject = subjectInput.value;
+        const template = templateInput.value;
+        
+        if(!subject || !template) {
+            alert("Required setup components missing: Complete subject line and template data definitions.");
+            return;
+        }
+
+        sendBtn.disabled = true;
+        statusDiv.style.display = "block";
+        statusDiv.style.background = "#eff6ff";
+        statusDiv.style.color = "#1d4ed8";
+        statusDiv.textContent = `Processing mail merge pipeline. Dispatching broadcast payload across ${parsedData.length} records...`;
+
+        try {
+            await fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: subject, template: template, data: parsedData })
+            });
+            
+            statusDiv.style.background = "#f0fdf4";
+            statusDiv.style.color = "var(--success)";
+            statusDiv.innerHTML = `<strong>Pipeline Dispatched Successfully!</strong> Check your connected Gmail account's 'Sent' mailbox to view output logs.`;
+        } catch (error) {
+            statusDiv.style.background = "#fef2f2";
+            statusDiv.style.color = "#b91c1c";
+            statusDiv.innerHTML = `<strong>Network Error:</strong> API handshaking failed. Review your Google Apps Script deployment URL configurations.`;
+            sendBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
