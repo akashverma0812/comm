@@ -3,391 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Candidate Email Manager</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Internal Bulk Email Sender</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background-color: #f9f9f9; }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        #drop-zone { border: 2px dashed #007bff; border-radius: 6px; padding: 30px; text-align: center; cursor: pointer; background: #f0f7ff; color: #007bff; font-weight: bold; }
+        #drop-zone.hover { background: #e0efff; }
+        textarea { width: 100%; height: 150px; margin-top: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; }
+        button:hover { background: #218838; }
+        .status { margin-top: 15px; font-weight: bold; color: #555; }
+        code { background: #eee; padding: 2px 4px; border-radius: 3px; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar">
-            <div class="logo">
-                <h1>📧 CEM</h1>
-                <p>Candidate Email Manager</p>
-            </div>
-            <nav class="nav-menu">
-                <a href="#" class="nav-item active" data-section="dashboard">
-                    <span class="icon">📊</span> Dashboard
-                </a>
-                <a href="#" class="nav-item" data-section="compose">
-                    <span class="icon">✍️</span> Compose Email
-                </a>
-                <a href="#" class="nav-item" data-section="candidates">
-                    <span class="icon">👥</span> Manage Candidates
-                </a>
-                <a href="#" class="nav-item" data-section="templates">
-                    <span class="icon">📝</span> Email Templates
-                </a>
-                <a href="#" class="nav-item" data-section="history">
-                    <span class="icon">📋</span> Email History
-                </a>
-                <a href="#" class="nav-item" data-section="settings">
-                    <span class="icon">⚙️</span> Settings
-                </a>
-            </nav>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="header">
-                <h2 id="page-title">Dashboard</h2>
-                <div class="header-actions">
-                    <span class="user-info">👤 User</span>
-                    <button class="logout-btn" onclick="logout()">Logout</button>
-                </div>
-            </header>
-
-            <!-- Dashboard Section -->
-            <section id="dashboard" class="content-section active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Total Candidates</h3>
-                        <p class="stat-number" id="total-candidates">0</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Emails Sent Today</h3>
-                        <p class="stat-number" id="emails-today">0</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Total Emails Sent</h3>
-                        <p class="stat-number" id="total-emails">0</p>
-                    </div>
-                </div>
-                <div class="dashboard-section">
-                    <h3>Recent Activities</h3>
-                    <div id="recent-activities" class="activity-log">
-                        <p class="empty-state">No activities yet</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Compose Email Section -->
-            <section id="compose" class="content-section">
-                <div class="compose-container">
-                    <h3>Compose Email</h3>
-                    <form id="compose-form" class="form-group">
-                        <!-- Email Configuration -->
-                        <div class="form-row">
-                            <div class="form-column">
-                                <label for="sender-email">From Email:</label>
-                                <select id="sender-email" required>
-                                    <option value="gmail">Gmail Account</option>
-                                    <option value="official">Official Email</option>
-                                </select>
-                            </div>
-                            <div class="form-column">
-                                <label for="email-subject">Subject:</label>
-                                <input type="text" id="email-subject" placeholder="Enter email subject" required>
-                            </div>
-                        </div>
-
-                        <!-- Recipient Selection -->
-                        <div class="form-row">
-                            <div class="form-column full-width">
-                                <label for="recipient-type">Send To:</label>
-                                <select id="recipient-type" onchange="toggleRecipientOptions()">
-                                    <option value="single">Single Candidate</option>
-                                    <option value="multiple">Multiple Candidates</option>
-                                    <option value="filter">Filter by Location/Date</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Single Recipient -->
-                        <div id="single-recipient" class="recipient-option">
-                            <div class="form-row">
-                                <div class="form-column full-width">
-                                    <label for="candidate-select">Select Candidate:</label>
-                                    <select id="candidate-select" onchange="populateCandidateFields()">
-                                        <option value="">-- Select a Candidate --</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Multiple Recipients -->
-                        <div id="multiple-recipients" class="recipient-option hidden">
-                            <div class="form-row">
-                                <div class="form-column full-width">
-                                    <label for="candidates-multi">Select Multiple Candidates:</label>
-                                    <div id="candidates-multi" class="checkbox-group"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Filter Recipients -->
-                        <div id="filter-recipients" class="recipient-option hidden">
-                            <div class="form-row">
-                                <div class="form-column">
-                                    <label for="filter-location">Location:</label>
-                                    <input type="text" id="filter-location" placeholder="e.g., New York">
-                                </div>
-                                <div class="form-column">
-                                    <label for="filter-date">After Date:</label>
-                                    <input type="date" id="filter-date">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Email Template -->
-                        <div class="form-row">
-                            <div class="form-column full-width">
-                                <label for="email-template">Use Template:</label>
-                                <select id="email-template" onchange="loadTemplate()">
-                                    <option value="">-- Select a Template (Optional) --</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Dynamic Fields -->
-                        <div class="form-row">
-                            <div class="form-column full-width">
-                                <label for="email-body">Email Body:</label>
-                                <textarea id="email-body" placeholder="Enter your email content here. Use {{Name}}, {{Location}}, {{Address}}, {{Date}} for dynamic fields" rows="10" required></textarea>
-                                <small class="hint">💡 Tip: Use {{Name}}, {{Location}}, {{Address}}, {{Date}} to insert candidate details automatically</small>
-                            </div>
-                        </div>
-
-                        <!-- Preview -->
-                        <div class="preview-section">
-                            <button type="button" class="btn-secondary" onclick="previewEmail()">Preview Email</button>
-                        </div>
-
-                        <!-- Send Button -->
-                        <div class="form-row">
-                            <button type="submit" class="btn-primary">Send Email(s)</button>
-                            <button type="reset" class="btn-secondary">Clear</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Email Preview Modal -->
-                <div id="preview-modal" class="modal hidden">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3>Email Preview</h3>
-                            <button class="close-btn" onclick="closePreview()">&times;</button>
-                        </div>
-                        <div id="preview-body" class="modal-body"></div>
-                        <div class="modal-footer">
-                            <button class="btn-secondary" onclick="closePreview()">Close</button>
-                            <button class="btn-primary" onclick="sendFromPreview()">Send Now</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Manage Candidates Section -->
-            <section id="candidates" class="content-section">
-                <div class="candidates-container">
-                    <div class="section-header">
-                        <h3>Manage Candidates</h3>
-                        <button class="btn-primary" onclick="showAddCandidateForm()">+ Add Candidate</button>
-                    </div>
-
-                    <!-- Add/Edit Candidate Form -->
-                    <form id="candidate-form" class="form-group hidden">
-                        <h4 id="form-title">Add New Candidate</h4>
-                        <div class="form-row">
-                            <div class="form-column">
-                                <label for="candidate-name">Name:</label>
-                                <input type="text" id="candidate-name" required>
-                            </div>
-                            <div class="form-column">
-                                <label for="candidate-email">Email:</label>
-                                <input type="email" id="candidate-email" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-column">
-                                <label for="candidate-location">Location:</label>
-                                <input type="text" id="candidate-location" placeholder="City, Country">
-                            </div>
-                            <div class="form-column">
-                                <label for="candidate-address">Address:</label>
-                                <input type="text" id="candidate-address" placeholder="Full address">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-column">
-                                <label for="candidate-date">Date Added:</label>
-                                <input type="date" id="candidate-date" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <button type="submit" class="btn-primary">Save Candidate</button>
-                            <button type="button" class="btn-secondary" onclick="cancelCandidateForm()">Cancel</button>
-                        </div>
-                    </form>
-
-                    <!-- Candidates Table -->
-                    <div class="candidates-table-wrapper">
-                        <table id="candidates-table" class="candidates-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Location</th>
-                                    <th>Address</th>
-                                    <th>Date Added</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="candidates-tbody">
-                                <tr><td colspan="6" class="empty-state">No candidates added yet</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Email Templates Section -->
-            <section id="templates" class="content-section">
-                <div class="templates-container">
-                    <div class="section-header">
-                        <h3>Email Templates</h3>
-                        <button class="btn-primary" onclick="showAddTemplateForm()">+ Create Template</button>
-                    </div>
-
-                    <!-- Add/Edit Template Form -->
-                    <form id="template-form" class="form-group hidden">
-                        <h4 id="template-form-title">Create New Template</h4>
-                        <div class="form-row">
-                            <div class="form-column full-width">
-                                <label for="template-name">Template Name:</label>
-                                <input type="text" id="template-name" placeholder="e.g., Job Offer" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-column full-width">
-                                <label for="template-subject">Subject:</label>
-                                <input type="text" id="template-subject" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-column full-width">
-                                <label for="template-body">Template Body:</label>
-                                <textarea id="template-body" rows="10" required></textarea>
-                                <small class="hint">💡 Use {{Name}}, {{Location}}, {{Address}}, {{Date}} for dynamic fields</small>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <button type="submit" class="btn-primary">Save Template</button>
-                            <button type="button" class="btn-secondary" onclick="cancelTemplateForm()">Cancel</button>
-                        </div>
-                    </form>
-
-                    <!-- Templates List -->
-                    <div id="templates-list" class="templates-list">
-                        <p class="empty-state">No templates created yet</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Email History Section -->
-            <section id="history" class="content-section">
-                <div class="history-container">
-                    <h3>Email Sending History</h3>
-                    <div class="history-filters">
-                        <input type="text" id="history-search" placeholder="Search by candidate name or email..." onkeyup="filterHistory()">
-                        <input type="date" id="history-date" onchange="filterHistory()">
-                    </div>
-                    <div class="history-table-wrapper">
-                        <table id="history-table" class="history-table">
-                            <thead>
-                                <tr>
-                                    <th>Date & Time</th>
-                                    <th>Recipient</th>
-                                    <th>Subject</th>
-                                    <th>From Email</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-tbody">
-                                <tr><td colspan="5" class="empty-state">No email history yet</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Settings Section -->
-            <section id="settings" class="content-section">
-                <div class="settings-container">
-                    <h3>Settings</h3>
-                    
-                    <!-- Gmail Configuration -->
-                    <div class="settings-section">
-                        <h4>Gmail Configuration</h4>
-                        <div class="form-group">
-                            <label for="gmail-address">Gmail Address:</label>
-                            <input type="email" id="gmail-address" placeholder="your-email@gmail.com">
-                            <button class="btn-secondary" onclick="connectGmail()">Connect Gmail</button>
-                            <small class="hint">You'll need to generate an App Password for this</small>
-                        </div>
-                    </div>
-
-                    <!-- Official Email Configuration -->
-                    <div class="settings-section">
-                        <h4>Official Email Configuration</h4>
-                        <div class="form-group">
-                            <label for="official-email">Official Email:</label>
-                            <input type="email" id="official-email" placeholder="your-email@company.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="smtp-server">SMTP Server:</label>
-                            <input type="text" id="smtp-server" placeholder="smtp.company.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="smtp-port">SMTP Port:</label>
-                            <input type="number" id="smtp-port" placeholder="587" value="587">
-                        </div>
-                        <div class="form-group">
-                            <label for="smtp-password">SMTP Password:</label>
-                            <input type="password" id="smtp-password" placeholder="Your SMTP password">
-                            <button class="btn-secondary" onclick="connectOfficial()">Connect Official Email</button>
-                        </div>
-                    </div>
-
-                    <!-- General Settings -->
-                    <div class="settings-section">
-                        <h4>General Settings</h4>
-                        <div class="form-group">
-                            <label for="sender-name">Sender Name:</label>
-                            <input type="text" id="sender-name" placeholder="Your name">
-                        </div>
-                        <div class="form-group">
-                            <label for="default-signature">Email Signature:</label>
-                            <textarea id="default-signature" rows="4" placeholder="Your email signature"></textarea>
-                        </div>
-                        <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
-                    </div>
-
-                    <!-- Backup & Import -->
-                    <div class="settings-section">
-                        <h4>Data Management</h4>
-                        <button class="btn-secondary" onclick="exportData()">📥 Export Data (JSON)</button>
-                        <button class="btn-secondary" onclick="importData()">📤 Import Data (JSON)</button>
-                        <input type="file" id="import-file" accept=".json" style="display:none;" onchange="handleImport()">
-                    </div>
-                </div>
-            </section>
-        </main>
+    <div class="card">
+        <h2>1. Paste Your Email Template</h2>
+        <p>Use variables like <code>{Name}</code>, <code>{Address}</code>, and <code>{Location}</code>. Ensure these exactly match your CSV column headers.</p>
+        <input type="text" id="email-subject" placeholder="Email Subject" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;"><br>
+        <textarea id="email-template" placeholder="Hello {Name},&#10;&#10;Your deployment at {Location} is confirmed for the address {Address}.&#10;&#10;Best regards,&#10;Management"></textarea>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast hidden"></div>
+    <div class="card">
+        <h2>2. Upload Employee Data (CSV)</h2>
+        <div id="drop-zone">Drag & Drop your CSV file here or Click to Upload</div>
+        <input type="file" id="file-input" accept=".csv" style="display: none;">
+        <div id="file-info" class="status"></div>
+    </div>
 
-    <script src="app.js"></script>
+    <button id="send-btn" disabled>Send Emails via Gmail API</button>
+    <div id="process-status" class="status"></div>
+
+    <script>
+        // Replace with your Web App URL after deploying Google Apps Script Step 2
+        const WEB_APP_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL'; 
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const sendBtn = document.getElementById('send-btn');
+        const statusDiv = document.getElementById('process-status');
+        
+        let parsedData = [];
+
+        // Drag and drop handlers
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('hover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('hover');
+            handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        // Simple CSV Parser
+        function handleFile(file) {
+            if (!file || !file.name.endsWith('.csv')) {
+                alert('Please upload a valid CSV file.');
+                return;
+            }
+            fileInfo.textContent = `Selected: ${file.name}`;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parsedData = csvToArray(text);
+                if(parsedData.length > 0) {
+                    sendBtn.disabled = false;
+                    statusDiv.textContent = `Ready to send to ${parsedData.length} recipients.`;
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function csvToArray(str, delimiter = ",") {
+            const headers = str.slice(0, str.indexOf("\n")).split(delimiter).map(h => h.trim().replace(/["']/g, ""));
+            const rows = str.slice(str.indexOf("\n") + 1).split("\n");
+            
+            // Ensure Email column exists
+            if (!headers.includes("Email")) {
+                alert("CSV must include an 'Email' column.");
+                return [];
+            }
+
+            return rows.map(function (row) {
+                const values = row.split(delimiter).map(v => v.trim().replace(/["']/g, ""));
+                if(values.length !== headers.length) return null;
+                return headers.reduce(function (object, header, index) {
+                    object[header] = values[index];
+                    return object;
+                }, {});
+            }).filter(item => item !== null);
+        }
+
+        // Send Data to Backend
+        sendBtn.addEventListener('click', async () => {
+            const subject = document.getElementById('email-subject').value;
+            const template = document.getElementById('email-template').value;
+            
+            if(!subject || !template) {
+                alert("Please fill out the Subject and Template.");
+                return;
+            }
+
+            sendBtn.disabled = true;
+            statusDiv.textContent = "Sending emails... please wait.";
+
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Needed for cross-origin Apps Script execution
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: subject, template: template, data: parsedData })
+                });
+                
+                statusDiv.innerHTML = "<span style='color:green;'>Success! Instructions sent to Gmail Link. Check your Gmail Sent folder.</span>";
+            } catch (error) {
+                statusDiv.innerHTML = "<span style='color:red;'>Error sending emails. Check configuration.</span>";
+                sendBtn.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>
